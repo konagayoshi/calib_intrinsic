@@ -41,6 +41,7 @@
 
 struct chart_param
 {
+    int chart_type; // 0:checker board, 1:charuco board
     int dictionary_type;
     cv::Size num_squares;
     float square_size;
@@ -49,6 +50,7 @@ struct chart_param
     int init_charuco_id;
 
     chart_param() :
+        chart_type( 0 ),
         dictionary_type( cv::aruco::DICT_4X4_250 ),
         num_squares( 7, 6 ),
         square_size( 0.03 ),
@@ -66,6 +68,7 @@ static int read_chart_param( const cv::String &fname_param, chart_param &param )
         return 1;
     }
 
+    fs["CHART_TYPE"] >> param.chart_type;
     fs["DICTIONARY_TYPE"] >> param.dictionary_type;
     fs["NUM_SQUARES"] >> param.num_squares;
     fs["SQUARE_SIZE"] >> param.square_size;
@@ -118,58 +121,95 @@ int main( int argc, char **argv )
 
     cv::Size size_img = param.num_squares * param.img_square_size;
 
-    cv::Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary( param.dictionary_type );
-    cv::Ptr<cv::aruco::DetectorParameters> params = cv::aruco::DetectorParameters::create();
-    params->cornerRefinementMethod = cv::aruco::CORNER_REFINE_NONE;
-
-    int corner_id = param.init_charuco_id;
-    cv::Ptr<cv::aruco::CharucoBoard> board = cv::aruco::CharucoBoard::create( param.num_squares.width, param.num_squares.height,
-                                                                              param.square_size, param.marker_size, dictionary );
-
-    for( int j = 0; j < board->ids.size(); j++ )
+    // Checker board
+    if( param.chart_type == 0 )
     {
-        board->ids[j] = corner_id;
-        corner_id++;
+        cv::Mat img_board = cv::Mat::ones( size_img, CV_8UC1 ) * 255;
+
+        for( int j = 0; j < param.num_squares.height; j++ )
+        {
+            for( int i = 0; i < param.num_squares.width; i++ )
+            {
+                if( (i & 1) ^ (j & 1) )
+                {
+                    continue;
+                }
+
+                cv::rectangle( img_board,
+                               cv::Point( i*param.img_square_size,
+                                                     j*param.img_square_size ),
+                               cv::Point( (i + 1)*param.img_square_size - 1,
+                                          (j + 1)*param.img_square_size - 1 ),
+                               cv::Scalar::all(0), cv::FILLED );
+            }
+        }
+
+        if( show_chart )
+        {
+            cv::imshow( "img_board", img_board );
+            cv::waitKey();
+        }
+        else
+        {
+            cv::imwrite( fname_out, img_board );
+        }
     }
-
-    cv::Mat img_board;
-    board->draw( size_img, img_board, 0, 1 );
-
-    if( show_chart )
-    {
-        cv::imshow( "img_board", img_board );
-
-        std::vector< int > ids;
-        std::vector< std::vector< cv::Point2f > > corners, rejected;
-        cv::aruco::detectMarkers( img_board, dictionary, corners, ids, params, rejected );
-        cv::aruco::refineDetectedMarkers( img_board, board, corners, ids, rejected );
-
-        cv::Mat board_corners, corner_ids;
-        if( ids.size() > 0 )
-        {
-            cv::aruco::interpolateCornersCharuco( corners, ids, img_board, board, board_corners,
-                                                 corner_ids, cv::noArray(), cv::noArray(), 1 );
-        }
-
-        cv::Mat img_show;
-        cv::cvtColor( img_board, img_show, cv::COLOR_GRAY2BGR );
-        if( ids.size() > 0 )
-        {
-            cv::aruco::drawDetectedMarkers( img_show, corners );
-        }
-
-        if( board_corners.total() > 0 )
-        {
-            cv::aruco::drawDetectedCornersCharuco( img_show, board_corners, corner_ids );
-        }
-
-        cv::imshow( "img_corners", img_show );
-
-        cv::waitKey();
-    }
+    // Charuco board
     else
     {
-        cv::imwrite( fname_out, img_board );
+        cv::Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary( param.dictionary_type );
+        cv::Ptr<cv::aruco::DetectorParameters> params = cv::aruco::DetectorParameters::create();
+        params->cornerRefinementMethod = cv::aruco::CORNER_REFINE_NONE;
+
+        int corner_id = param.init_charuco_id;
+        cv::Ptr<cv::aruco::CharucoBoard> board = cv::aruco::CharucoBoard::create( param.num_squares.width, param.num_squares.height,
+                                                                                  param.square_size, param.marker_size, dictionary );
+
+        for( int j = 0; j < board->ids.size(); j++ )
+        {
+            board->ids[j] = corner_id;
+            corner_id++;
+        }
+
+        cv::Mat img_board;
+        board->draw( size_img, img_board, 0, 1 );
+
+        if( show_chart )
+        {
+            cv::imshow( "img_board", img_board );
+
+            std::vector< int > ids;
+            std::vector< std::vector< cv::Point2f > > corners, rejected;
+            cv::aruco::detectMarkers( img_board, dictionary, corners, ids, params, rejected );
+            cv::aruco::refineDetectedMarkers( img_board, board, corners, ids, rejected );
+
+            cv::Mat board_corners, corner_ids;
+            if( ids.size() > 0 )
+            {
+                cv::aruco::interpolateCornersCharuco( corners, ids, img_board, board, board_corners,
+                                                      corner_ids, cv::noArray(), cv::noArray(), 1 );
+            }
+
+            cv::Mat img_show;
+            cv::cvtColor( img_board, img_show, cv::COLOR_GRAY2BGR );
+            if( ids.size() > 0 )
+            {
+                cv::aruco::drawDetectedMarkers( img_show, corners );
+            }
+
+            if( board_corners.total() > 0 )
+            {
+                cv::aruco::drawDetectedCornersCharuco( img_show, board_corners, corner_ids );
+            }
+
+            cv::imshow( "img_corners", img_show );
+
+            cv::waitKey();
+        }
+        else
+        {
+            cv::imwrite( fname_out, img_board );
+        }
     }
 
     return 0;
