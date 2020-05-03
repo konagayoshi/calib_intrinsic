@@ -1,5 +1,5 @@
 /*
-  Copyright 2019 coyote009
+  Copyright 2020 coyote009
 
   This file is part of raspivideocap.
 

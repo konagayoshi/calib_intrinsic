@@ -1,0 +1,12 @@
+%YAML:1.0
+---
+FILE_INPUT: 0
+SIZE_IN: [ 960, 576 ]
+FRAME_RATE: 120
+FNAME_IMGS_OUT: "../work/calib_omni_960x576_120/calib_imgs_out.avi"
+SIZE_PAT: [ 6, 5 ]
+PAT_LEN: 3.0e-02
+#SIZE_SHOW: [ 960, 576 ]
+SIZE_SHOW: [ 640, 384 ]
+FNAME_CALIB: "../work/calib_omni_960x576_120/calib_intrinsics.yml"
+LENS_MODEL: 2
