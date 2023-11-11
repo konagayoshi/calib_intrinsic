@@ -233,7 +233,9 @@ int main( int argc, char **argv )
     cv::VideoWriter vw;
     if( !param.fname_imgs_out.empty() )
     {
-        if( !vw.open( param.fname_imgs_out, CV_FOURCC('H','F','Y','U'), 30.0, param.size_in ) )
+        // if( !vw.open( param.fname_imgs_out, CV_FOURCC('H','F','Y','U'), 30.0, param.size_in ) )
+      if( !vw.open( param.fname_imgs_out, cv::VideoWriter::fourcc('H','F','Y','U'), 30.0, param.size_in ) )
+	      
         {
             fprintf( stderr, "Failed to open output file\n" );
             return 1;

@@ -1,9 +1,11 @@
 set( TARGET calib_intrinsic )
 set( RASPICAM_DIR /opt/raspivideocap )
 
+project(ProjectName)
+
 cmake_minimum_required( VERSION 2.8 )
 
-find_package( OpenCV 3 REQUIRED )
+find_package( OpenCV 4 REQUIRED )
 
 include_directories( ${RASPICAM_DIR}/include src )
 link_directories( /opt/vc/lib ${RASPICAM_DIR}/lib )

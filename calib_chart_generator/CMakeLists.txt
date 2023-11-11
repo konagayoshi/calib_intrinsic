@@ -1,8 +1,10 @@
 set( TARGET calib_chart_generator )
 
+project(ProjectName)
+
 cmake_minimum_required( VERSION 2.8 )
 
-find_package( OpenCV 3 REQUIRED )
+find_package( OpenCV 4 REQUIRED )
 
 file( GLOB SRCS src/*.cpp )
 
